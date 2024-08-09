@@ -4,12 +4,52 @@ import Image from "next/image";
 import { useState } from "react";
 
 export default function Home() {
-  const [messages, setMessages] = useState([{
+  const [messages, setMessages] = useState([
+    {
     role: 'assistant',
     content: `Hi, I'm a support agent that specializing in electronics, home appliances, and accessories, how can I be of assistance today?`
-  }])
+    },
+  ])
 
   const [message, setMessage] = useState('')
+
+  const sendMessage = async () => {
+    setMessage('')
+    setMessage((messages) => [
+      ...messages,
+      {role: 'user', content: message},
+      {role: 'assistant', content: ''},
+    ])
+    const responses = fetch('/api/chat', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify([...messages, {role: 'user', content: message}])
+    }).then(async (res) => {
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let result = ''
+      return reader.read().then(function processText({done, value}) {
+        if (done) {
+          return result
+        }
+        const text = decoder.decode(value || new Int8Array(), {stream: true})
+        setMessages((messages) => {
+          let lastMessage = messages[messages.length - 1]
+          let otherMessages = messages.slice(0, messages.length - 1)
+          return [
+            ...otherMessages,
+            {
+              ...lastMessage,
+              content: lastMessage.content + text,
+            },
+          ]
+        })
+        return reader.read().then(processText)
+      })
+    })
+  }
 
   return (
     <Box 
@@ -62,9 +102,9 @@ export default function Home() {
             label = "message"
             fullWidth
             value = {message}
-            onChange={(e) => setMessage(e.target.value)}/>
-          
-        <Button variant= "contained" >Send</Button>
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        <Button variant= "contained" onClick={sendMessage}>Send</Button>
         </Stack>
       </Stack>
     </Box>

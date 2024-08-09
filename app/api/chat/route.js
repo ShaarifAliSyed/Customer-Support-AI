@@ -21,13 +21,12 @@ export async function POST(req) {
     const completion = await openai.chat.completions.create({
         messages: [
             {
-                role: 'system', context: systemPrompt
+                role: 'system', content: systemPrompt
             },
             ...data, // Spread operator to get the rest of the messages 
         ],
         model: "gpt-4o-mini",
         stream: true,
-
     })
     const stream = new ReadableStream({
         async start(controller) {
