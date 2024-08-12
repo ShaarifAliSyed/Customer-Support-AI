@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Can be changed for now this is a support bot for large retail company specializing in electronics, home appliances, and accessories
